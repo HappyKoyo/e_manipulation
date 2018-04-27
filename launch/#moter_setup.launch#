@@ -1,0 +1,28 @@
+<!-- -*- mode: XML -*- -->
+<launch>
+  <node name="dynamixel_manager" pkg="dynamixel_controllers" type="controller_manager.py" required="true" output="screen">
+    <rosparam>
+      namespace: dxl_manager
+      serial_ports:
+        pan_tilt_port:
+          port_name: "/dev/dynamixel_A5052MD7"
+          baud_rate: 57142
+          min_motor_id: 0
+          max_motor_id: 25
+          update_rate: 40
+    </rosparam>
+  </node>
+  <!-- Start tilt joint controller -->
+    <rosparam file="$(find my_dynamixel_tutorial)/cfg/tilt.yaml" command="load"/>
+    <node name="tilt_controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
+          args="--manager=dxl_manager
+                --port pan_tilt_port
+                m0_controller
+                m1_controller
+                m2_controller
+                m3_controller
+                m4_controller
+                m5_controller"
+          output="screen"/>
+    <!--node pkg="open_challenge" type="OpenChallengeManip.py" name="OpenChallengeManip" /-->
+</launch>

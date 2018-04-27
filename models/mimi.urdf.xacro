@@ -1,0 +1,292 @@
+<?xml version="1.0" ?>
+<robot name="mimi" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!--arm config-->
+  <xacro:property name="arm_height" value="0.72"/>
+  <xacro:property name="arm_radius" value="0.03"/>
+  <xacro:property name="link1_length" value="0.282"/>
+  <xacro:property name="link2_length" value="0.209"/>
+  <xacro:property name="link3_length" value="0.059"/>
+  <xacro:property name="link4_length" value="0.055"/>
+  <!--head variable-->
+  <xacro:property name="head_radius" value="0.15" />
+  <xacro:property name="head_depth" value="0.1" />
+  <xacro:property name="eye_radius" value="0.02" />
+  <xacro:property name="eye_y" value="0.075" />
+  <xacro:property name="mouse_radius" value="0.03" />
+  <xacro:property name="mouse_x" value="0.075" />
+  <xacro:property name="pi" value="3.14159265359" />
+  <!--torso variable-->
+  <xacro:property name="kozue_radius" value="0.015" />
+  <xacro:property name="kozue_height" value="0.85" />
+  <!--base variable-->
+  <xacro:property name="kobuki_radius" value="0.175" />
+  <xacro:property name="kobuki_height" value="0.1" />
+  
+  <!--color definition-->
+  <material name="yellow">
+    <color rgba="1 1 0 1"/>
+  </material>
+  <material name="black">
+    <color rgba="0 0 0 1"/>
+  </material>
+  <material name="transparent_yellow">
+    <color rgba="1 1 0 0.5"/>
+  </material>
+  <!--base definition-->
+  <xacro:macro name="default_inertial" params="mass">
+    <inertial>
+      <mass value="${mass}" />
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+    </inertial>
+  </xacro:macro>
+  
+  <link name="world"/>
+  <joint name="world2base" type="fixed">
+    <parent link="world"/>
+    <child link="kobuki_base"/>
+  </joint>
+  
+  <link name="kobuki_base">
+    <visual>
+      <geometry>
+        <cylinder radius="${kobuki_radius}" length="${kobuki_height}"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${kobuki_radius}" length="${kobuki_height}"/>
+      </geometry>
+    </collision>
+    <xacro:default_inertial mass="10"/>
+  </link>
+  <!--torso definition-->
+  <joint name="base2torso" type="fixed">
+    <parent link="kobuki_base"/>
+    <child link="mini_torso"/>
+    <axis xyz="0 0 1"/>
+    <origin xyz="0 0 ${kozue_height/2+kobuki_height/2}"/>
+  </joint>
+  
+  <link name="mini_torso">
+    <visual>
+      <geometry>
+        <cylinder radius="${kozue_radius}" length="${kozue_height}"/>
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${kozue_radius}" length="${kozue_height}"/>
+      </geometry>
+    </collision>
+    <xacro:default_inertial mass="10"/>
+  </link>
+  <!--head definition-->
+  <joint name="torso2head" type="fixed">
+    <parent link="mini_torso"/>
+    <child link="mini_head"/>
+    <axis xyz="0 0 1"/>
+    <origin rpy="0 ${pi/2} 0" xyz="0 0 ${head_radius+kozue_height/2}"/>
+  </joint>
+  
+  <link name="mini_head">
+    <visual>
+      <geometry>
+        <cylinder radius="${head_radius}" length="${head_depth}"/>
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${head_radius}" length="${head_depth"/>
+      </geometry>
+    </collision>
+    <xacro:default_inertial mass="10"/>
+  </link>
+  
+  <joint name="head2right_eye" type="fixed">
+    <parent link="mini_head"/>
+    <child link="mini_right_eye"/>
+    <axis xyz="0 0 1"/>
+    <origin xyz="0 ${eye_y} 0.01"/>
+  </joint>
+  
+  <link name="mini_right_eye">
+    <visual>
+      <geometry>
+        <cylinder radius="${eye_radius}" length="${head_depth}"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${eye_radius}" length="${head_depth}"/>
+      </geometry>
+    </collision>
+    <xacro:default_inertial mass="10"/>
+  </link>
+
+  <joint name="head2left_eye" type="fixed">
+    <parent link="mini_head"/>
+    <child link="mini_left_eye"/>
+    <axis xyz="0 0 1"/>
+    <origin xyz="0 ${eye_y*-1} 0.01"/>
+  </joint>
+  
+  <link name="mini_left_eye">
+    <visual>
+      <geometry>
+        <cylinder radius="${eye_radius}" length="${head_depth}"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${eye_radius}" length="${head_depth}"/>
+      </geometry>
+    </collision>
+    <xacro:default_inertial mass="10"/>
+  </link>
+
+  <joint name="head2mouse" type="fixed">
+    <parent link="mini_head"/>
+    <child link="mini_mouse"/>
+    <axis xyz="0 0 1"/>
+    <origin xyz="${mouse_x} 0 0.01"/>
+  </joint>
+  
+  <link name="mini_mouse">
+    <visual>
+      <geometry>
+        <cylinder radius="${mouse_radius}" length="${head_depth}"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${mouse_radius}" length="${head_depth}"/>
+      </geometry>
+    </collision>
+    <xacro:default_inertial mass="10"/>
+  </link>
+  <!--arm definition-->
+  <joint name="joint1" type="revolute">
+    <parent link="mini_torso"/>
+    <child link="link1"/>
+    <axis xyz="0 -1 0"/>
+    <origin rpy="0 0 0" xyz="${kozue_radius} 0 ${arm_height/2}"/>
+    <limit effort="30" lower="-1.57" upper="1.57" velocity="1.571"/>
+  </joint>
+  
+  <link name="link1">
+    <visual>
+      <geometry>
+        <cylinder radius="${arm_radius}" length="${link1_length}"/>
+      </geometry>
+      <origin xyz="${link1_length/2} 0 0" rpy="0 ${-1*pi/2} 0"/>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+	<cylinder radius="${arm_radius}" length="${link1_length}"/>
+      </geometry>
+      <origin xyz="${link1_length/2} 0 0" rpy="0 ${-1*pi/2} 0"/>
+    </collision>
+    <xacro:default_inertial mass="10"/>
+  </link>
+  
+  <joint name="joint2" type="revolute">
+    <parent link="link1"/>
+    <child link="link2"/>
+    <axis xyz="0 -1 0"/>
+    <origin rpy="0 0 0" xyz="${link1_length} 0 0"/>
+    <limit effort="30" lower="-1.57" upper="1.57" velocity="1.571"/>
+  </joint>
+  
+  <link name="link2">
+    <visual>
+      <geometry>
+        <cylinder radius="${arm_radius}" length="${link2_length}"/>
+      </geometry>
+      <origin xyz="${link2_length/2} 0 0" rpy="0 ${-1*pi/2} 0"/>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+	<cylinder radius="${arm_radius}" length="${link2_length}"/>
+      </geometry>
+      <origin xyz="${link2_length/2} 0 0" rpy="0 ${-1*pi/2} 0"/>
+    </collision>
+    <xacro:default_inertial mass="10"/>
+  </link>
+
+  <joint name="joint3" type="revolute">
+    <parent link="link2"/>
+    <child link="link3"/>
+    <axis xyz="0 -1 0"/>
+    <origin rpy="0 0 0" xyz="${link2_length} 0 0"/>
+    <limit effort="30" lower="-1.57" upper="1.57" velocity="1.571"/>
+  </joint>
+  
+  <link name="link3">
+    <visual>
+      <geometry>
+        <cylinder radius="${arm_radius}" length="${link3_length}"/>
+      </geometry>
+      <origin xyz="${link3_length/2} 0 0" rpy="0 ${-1*pi/2} 0"/>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+	<cylinder radius="${arm_radius}" length="${link3_length}"/>
+      </geometry>
+      <origin xyz="${link3_length/2} 0 0" rpy="0 ${-1*pi/2} 0"/>
+    </collision>
+    <xacro:default_inertial mass="10"/>
+  </link>
+
+  <joint name="joint4" type="revolute">
+    <parent link="link3"/>
+    <child link="link4"/>
+    <axis xyz="1 0 0"/>
+    <origin rpy="0 0 0" xyz="${link3_length} 0 0"/>
+    <limit effort="30" lower="-1.57" upper="1.57" velocity="1.571"/>
+  </joint>
+  
+  <link name="link4">
+    <visual>
+      <geometry>
+        <cylinder radius="${arm_radius}" length="${link4_length}"/>
+      </geometry>
+      <origin xyz="${link4_length/2} 0 0" rpy="0 ${-1*pi/2} 0"/>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+	<cylinder radius="${arm_radius}" length="${link4_length}"/>
+      </geometry>
+      <origin xyz="${link4_length/2} 0 0" rpy="0 ${-1*pi/2} 0"/>
+    </collision>
+    <xacro:default_inertial mass="10"/>
+  </link>
+
+  <joint name="end_dummy_joint" type="fixed">
+    <parent link="link4"/>
+    <child link="end_point"/>
+    <axis xyz="0 0 1"/>
+    <origin rpy="0 0 0" xyz="${link3_length} 0 0"/>
+  </joint>
+  
+  <link name="end_point">
+    <visual>
+      <geometry>
+        <sphere radius="0.05"/>
+      </geometry>
+      <material name="transparent_yellow"/>
+    </visual>
+    <xacro:default_inertial mass="10"/>
+  </link>
+
+  
+</robot>
