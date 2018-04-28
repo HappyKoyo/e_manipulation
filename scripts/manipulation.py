@@ -17,11 +17,13 @@ class Manipulation:
     def __init__(self):
         self.changing_pose_req_sub = rospy.Subscriber('/arm/changing_pose_req',String,self.ChangePoseReqCB)
         self.xyz_centroid_sub = rospy.Subscriber('/object/xyz_centroid',Point,self.GraspObjectCB)
-
+        self.place_req_sub = rospy.Subscriber('/arm/place_req',Bool,self.PlaceReqCB)
+        
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel_mux/input/teleop',Twist,queue_size = 1)
         self.retry_pub = rospy.Publisher('/object/recog_req',String,queue_size = 1)
         self.grasp_res_pub = rospy.Publisher('/object/grasp_res',Bool,queue_size = 1)
         self.retry_pub = rospy.Publisher('/object/grasp_req',String,queue_size = 1)
+        self.place_pub = rospy.Publisher('/object/place_res',Bool,queue_size = 1)
 
         #Definition of Moters    
         self.m0_sub = rospy.Subscriber('/m0_controller/state',JointState,self.M0StateCB)
@@ -38,7 +40,7 @@ class Manipulation:
         self.M2_ORIGIN_ANGLE = -0.036
         self.M3_ORIGIN_ANGLE = 0.036
         self.M4_ORIGIN_ANGLE = 0.0
-        self.M5_ORIGIN_ANGLE = 0.9
+        self.M5_ORIGIN_ANGLE = -0.73
         
         self.m0_angle = 0
         self.m1_angle = 0
@@ -69,6 +71,18 @@ class Manipulation:
         cmd.linear.x = 0
         cmd.angular.z = 0
         self.cmd_vel_pub.publish(cmd)
+
+    def PlaceReqCB(self,req):
+        self.m0_pub.publish(self.M0_ORIGIN_ANGLE-0.480647313538)
+        self.m1_pub.publish(self.M1_ORIGIN_ANGLE+0.424401351315)
+        self.m2_pub.publish(self.M2_ORIGIN_ANGLE-1.55954713435)
+        self.m3_pub.publish(self.M3_ORIGIN_ANGLE-1.02776712788)
+        self.m4_pub.publish(self.M4_ORIGIN_ANGLE+0.0)
+        time.sleep(3)
+        self.MoveBase(0.7)
+        time.sleep(3)
+        self.m5_pub.publish(self.M5_ORIGIN_ANGLE)
+        self.place_pub.Publish(True)
             
     def GraspObjectCB(self,obj_cog):
         print obj_cog
